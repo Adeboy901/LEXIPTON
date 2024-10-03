@@ -1,6 +1,11 @@
-# put yours
-API_ID = 123
-API_HASH = "123"
+# config.py
+
+# List of query data for each account
+QUERY_DATA = [
+    "",
+    "",
+    # Add more accounts as needed
+]
 
 # =============[upgrades]================
 # default is 5 level you can change it your self
