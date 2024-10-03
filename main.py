@@ -99,8 +99,13 @@ class NotPx:
 
     def __init__(self, session_name: str, query_data: str) -> None:
         self.session = requests.Session()
-        if config.USE_PROXY:
-            self.session.proxies = config.PROXIES
+        if config.USE_PROXY and config.PROXIES:
+            # Use the first proxy from the list (or implement logic to select a specific one)
+            proxy = config.PROXIES[0].split(':')
+            self.session.proxies = {
+                'http': f'http://{proxy[2]}:{proxy[3]}@{proxy[0]}:{proxy[1]}',
+                'https': f'https://{proxy[2]}:{proxy[3]}@{proxy[0]}:{proxy[1]}',
+            }
         self.session_name = session_name
         self.__update_headers(query_data)
 
@@ -169,12 +174,12 @@ class NotPx:
         return self.request("get","/mining/status","speedPerSecond")
 
     def autoPaintPixel(self):
-        # making pixel randomly
-        colors = [ "#FFFFFF" , "#000000" , "#00CC78" , "#BE0039" ]
-        random_pixel = (random.randint(100,990) * 1000) + random.randint(100,990)
-        data = {"pixelId":random_pixel,"newColor":random.choice(colors)}
+        # Use specified coordinates and their corresponding colors from config
+        for (x, y), hex_color in config.PAINT_COORDINATES.items():
+            pixelformated = (y * 1000) + x + 1  # Format the pixel ID
+            data = {"pixelId": pixelformated, "newColor": hex_color}
 
-        return self.request("post","/repaint/start","balance",data)['balance']
+            return self.request("post", "/repaint/start", "balance", data)['balance']
     
     def paintPixel(self,x,y,hex_color):
         pixelformated = (y * 1000) + x + 1
