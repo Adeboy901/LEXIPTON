@@ -14,8 +14,9 @@ ENERGY_LIMIT_MAX = 5 # max is 6
 RE_CHARGE_SPEED_MAX = 5 # max is 11
 
 # ================[proxy]================
-USE_PROXY = False # or put True if you want use it
-PROXIES = {
-    "http":"socks5://127.0.0.1",
-    "https":"socks5://127.0.0.1", # if you using socks4 or http only replace it with "socks5"
-}
+USE_PROXY = True # or put True if you want use it
+# List of proxies in the format: ip:port:username:password
+PROXIES = [
+    "206.41.172.74:6634:stwajhwx:tmrt92jg3099",
+    "another.proxy.ip:port:username:password",  # Add more proxies as needed
+]
