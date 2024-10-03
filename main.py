@@ -12,13 +12,14 @@ import os
 report_bug_text = "If you have done all the steps correctly and you think this is a bug, report it to github.com/aDarkDev with response. response: {}"
 authenticate_error = "Please follow the steps correctly. Not authenticated."
 
-async def GetWebAppData(client):
-    notcoin = await client.get_entity("notpixel")
-    msg = await client(functions.messages.RequestWebViewRequest(notcoin,notcoin,platform="android",url="https://notpx.app/"))
-    webappdata_global = msg.url.split('https://notpx.app/#tgWebAppData=')[1].replace("%3D","=").split('&tgWebAppVersion=')[0].replace("%26","&")
-    user_data = webappdata_global.split("&user=")[1].split("&auth")[0]
-    webappdata_global = webappdata_global.replace(user_data,unquote(user_data))
-    return webappdata_global
+async def GetWebAppData(query_data):
+    # Parse the query data
+    params = dict(param.split('=') for param in query_data.split('&'))
+    webappdata_global = params.get('user', '')
+    
+    # Decode the user data
+    user_data = unquote(webappdata_global)
+    return user_data
 
 class NotPx:
     UpgradePaintReward = {
@@ -96,17 +97,15 @@ class NotPx:
         }
     }
 
-    def __init__(self,session_name:str) -> None:
+    def __init__(self, session_name: str, query_data: str) -> None:
         self.session = requests.Session()
         if config.USE_PROXY:
             self.session.proxies = config.PROXIES
         self.session_name = session_name
-        self.__update_headers()
+        self.__update_headers(query_data)
 
-    def __update_headers(self):
-        client = TelegramClient(self.session_name,config.API_ID,config.API_HASH).start()
-        WebAppQuery = client.loop.run_until_complete(GetWebAppData(client))
-        client.disconnect()
+    def __update_headers(self, query_data: str):
+        WebAppQuery = asyncio.run(GetWebAppData(query_data))
         self.session.headers = {
             'Accept': 'application/json, text/plain, */*',
             'Accept-Language': 'en-US,en;q=0.9',
@@ -249,7 +248,7 @@ def painter(NotPxClient:NotPx,session_name:str):
         try:
             user_status = NotPxClient.accountStatus()
             if not user_status:
-                time.sleep(5)
+                time.sleep(random.randint(5, 8))  # Random sleep between 5 to 8 seconds
                 continue
             else:
                 charges = user_status['charges']
@@ -285,33 +284,36 @@ def painter(NotPxClient:NotPx,session_name:str):
                     print("[!] {}{} anti-detect{}: Sleeping for {}...".format(Colors.CYAN,session_name,Colors.END,t))
                     time.sleep(t)
             else:
-                print("[!] {}{}{}: {}No charge available{}. Sleeping for 10 minutes...".format(
+                print("[!] {}{}{}: {}No charge available{}. Sleeping for {} minutes...".format(
                     Colors.CYAN,session_name,Colors.END,
                     Colors.YELLOW,Colors.END
                 ))
-                time.sleep(600)
+                time.sleep(random.randint(480, 720))
         except requests.exceptions.ConnectionError:
-            print("[!] {}{}{}: {}ConnectionError{}. Sleeping for 5s...".format(
+            print("[!] {}{}{}: {}ConnectionError{}. Sleeping for {} seconds...".format(
                     Colors.CYAN,session_name,Colors.END,
-                    Colors.RED,Colors.END
+                    Colors.RED,Colors.END,
+                    random.randint(5, 8)
                 ))
-            time.sleep(5)
+            time.sleep(random.randint(5, 8))
         except urllib3.exceptions.NewConnectionError:
-            print("[!] {}{}{}: {}NewConnectionError{}. Sleeping for 5s...".format(
+            print("[!] {}{}{}: {}NewConnectionError{}. Sleeping for {} seconds...".format(
                     Colors.CYAN,session_name,Colors.END,
-                    Colors.RED,Colors.END
+                    Colors.RED,Colors.END,
+                    random.randint(5, 8)
                 ))
-            time.sleep(5)
+            time.sleep(random.randint(5, 8))
         except requests.exceptions.Timeout:
-            print("[!] {}{}{}: {}Timeout Error{}. Sleeping for 5s...".format(
+            print("[!] {}{}{}: {}Timeout Error{}. Sleeping for {} seconds...".format(
                     Colors.CYAN,session_name,Colors.END,
-                    Colors.RED,Colors.END
+                    Colors.RED,Colors.END,
+                    random.randint(5, 8)
                 ))
-            time.sleep(5)
+            time.sleep(random.randint(5, 8))
         
         
 def mine_claimer(NotPxClient: NotPx, session_name: str):
-    time.sleep(5)  # start with delay...
+    time.sleep(random.randint(5, 8))  # Random sleep between 5 to 8 seconds
 
     print("[+] {}Auto claiming started{}.".format(Colors.CYAN, Colors.END))
     while True:
@@ -320,7 +322,7 @@ def mine_claimer(NotPxClient: NotPx, session_name: str):
         # Check if acc_data is None
         if acc_data is None:
             print("[!] {}{}{}: {}Failed to retrieve account status. Retrying...{}".format(Colors.CYAN, session_name, Colors.END, Colors.RED, Colors.END))
-            time.sleep(5)  # Wait before retrying
+            time.sleep(random.randint(5, 8))  # Random sleep between 3 to 7 seconds
             continue
         
         # Check if the necessary keys exist in acc_data
@@ -336,18 +338,19 @@ def mine_claimer(NotPxClient: NotPx, session_name: str):
         else:
             print("[!] {}{}{}: {}Unexpected account data format. Retrying...{}".format(Colors.CYAN, session_name, Colors.END, Colors.RED, Colors.END))
         
-        print("[!] {}{}{}: Sleeping for 1 hour...".format(Colors.CYAN, session_name, Colors.END))
-        time.sleep(3600)
+        print("[!] {}{}{}: Sleeping for {} minutes...".format(Colors.CYAN, session_name, Colors.END, random.randint(55, 65)))  # Random sleep between 55 to 65 minutes
+        time.sleep(random.randint(3300, 3900))  # Random sleep between 55 to 65 minutes in seconds
 
 def multithread_starter():
     dirs = os.listdir("sessions/")
-    sessions = list(filter(lambda x: x.endswith(".session"),dirs))
-    sessions = list(map(lambda x: x.split(".session")[0],sessions))
-    for session_name in sessions:
+    sessions = list(filter(lambda x: x.endswith(".session"), dirs))
+    sessions = list(map(lambda x: x.split(".session")[0], sessions))
+    
+    for session_name, query_data in zip(sessions, config.QUERY_DATA):
         try:
-            cli = NotPx("sessions/"+session_name)
-            threading.Thread(target=painter,args=[cli,session_name]).start()
-            threading.Thread(target=mine_claimer,args=[cli,session_name]).start()
+            cli = NotPx("sessions/" + session_name, query_data)
+            threading.Thread(target=painter, args=[cli, session_name]).start()
+            threading.Thread(target=mine_claimer, args=[cli, session_name]).start()
         except Exception as e:
             print("[!] {}Error on load session{} \"{}\", error: {}".format(Colors.RED,Colors.END,session_name,e))
 
